@@ -134,7 +134,7 @@ define your own if extending Open MCT.
 ### Domain Object Types
 
 Custom types may be registered via the addType function on the Type registry.
-[openmct.types]{@link module:openmct.MCT#types}:
+
 ```
 openmct.types.addType('my-type', {
     label: "My Type",
@@ -154,10 +154,9 @@ tree on the left-hand side of Open MCT.) It is typical to expose a telemetry
 dictionary as a hierarchy of telemetry-providing domain objects in this
 fashion.
 
-To do so, use the [`addRoot`]{@link module:openmct.ObjectAPI#addRoot} method
-of the [object API]{@link module:openmct.ObjectAPI}:
+To do so, use the `addRoot` method of the object API:
 
-```
+```javascript
 openmct.objects.addRoot({
         key: "my-key", 
         namespace: "my-namespace" 
@@ -168,8 +167,33 @@ Root objects are loaded just like any other objects, i.e. via an object
 provider.
 
 ## Object Providers
+An Object Provider is used to build Domain Objects, typically retrieved from 
+some source such as a persistence store or telemetry dictionary. For example, in 
+order to integrate telemetry from a new source an object provider will need to 
+be created that can build objects representing telemetry points exposed by the 
+telemetry source. The API call to define a new object provider is fairly 
+straightforward. Here's a very simple example:
 
+```javascript
+openmct.objects.addProvider('example.namespace', {
+    get: function (identifier) {
+        return Promise.resolve({
+            identifier: identifier,
+            name: 'Example Object',
+            type: 'example-object-type'
+        });
+    }
+});
+```
+The `addProvider` function takes two arguments:
 
+* `namespace`: A `string` representing the namespace that this object provider 
+will provide objects for.
+* `provider`: An object with a single function, `get`. This function accepts an 
+[Identifier](#domain-objects-and-identifiers) for the object to be provided. 
+It is expected that the `get` function will return a 
+[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) 
+that resolves with the object being requested.
 
 ## Composition Providers
 
@@ -183,7 +207,7 @@ may be cases where you want to provide the composition of a certain object
 
 You may want to populate a hierarchy under a custom root-level object based on 
 the contents of a telemetry dictionary. To do this, you can add a new 
-CompositionProvider:
+Composition Provider:
 
 ```
 openmct.composition.addProvider({
@@ -220,6 +244,8 @@ var domainObject = {
 ```
 
 ## Telemetry Providers
+
+
 
 ## Included Plugins
 
