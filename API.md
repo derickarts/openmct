@@ -2,14 +2,13 @@
 
 ## Scope and purpose of this document
 
-This document is intended to serve as reference material for a developer who 
-wishes to develop an application based on Open MCT. It will provide details of 
-the API necessary to extend the Open MCT platform meet common use cases such as 
-integrating with a telemetry source. 
+This document is intended to serve as a reference for developing an application 
+based on Open MCT. It will provide details of the API necessary to extend the 
+Open MCT platform meet common use cases such as integrating with a telemetry source. 
 
-The best place to start is with the Open MCT tutorials. These will walk you through the 
-process of getting up and running with Open MCT, as well as addressing some common 
-developer use cases.
+The best place to start is with the [Open MCT Tutorials](https://github.com/larkin/openmct-tutorial). These will walk you 
+through the process of getting up and running with Open MCT, as well as addressing 
+some common developer use cases.
 
 ## Building From Source 
 
@@ -25,7 +24,8 @@ This will fetch the Open MCT source from our GitHub repository, and build
 a minified version that can be included in your application. The output of the 
 build process is placed in a `dist` folder, which can be copied out to another 
 location as needed. The content of this folder will include a minified javascript 
-file named `openmct.js` as well as  
+file named `openmct.js` as well as assets such as html, css, and images necessary 
+for the UI. 
 
 ## Starting an Open MCT application
 
@@ -35,10 +35,13 @@ The tutorials walk through the process of getting Open MCT up and running from s
 but provided below is a minimal HTML template that includes Open MCT, installs 
 some basic plugins, and bootstraps the application. It assumes that Open MCT is 
 installed as a node module, as described in [Building From Source](#building-from-source). 
+
 This approach includes openmct using a simple script tag, resulting in a global 
-variable named `openmct`. This `openmct` object is used to make API calls. 
+variable named `openmct`. This `openmct` object is used subsequently to make API 
+calls. 
+
 Open MCT is packaged as a UMD (Universal Module Definition) module, so common 
-script loaders are supported.
+script loaders are also supported.
 
 ```html
 <!DOCTYPE html>
@@ -65,17 +68,15 @@ images, and css. To tell Open MCT where these are located, simply call the
 `setAssetPath` function. Typically this will be the same location as the `openmct.js` 
 library is included from.
 
-Open MCT does not require any plugins to be installed, but there are some plugins 
-bundled with the application that provide UI, persistence, and other default 
-configuration which are necessary to be able to do anything with the application 
-initially. Any of these plugins could be replaced with a custom plugin however. 
-The included plugins are documented in the [Included Plugins](#included-plugins) 
+There are some plugins bundled with the application that provide UI, persistence, 
+and other default configuration which are necessary to be able to do anything with 
+the application initially. Any of these plugins could be replaced with a custom 
+plugin however. The included plugins are documented in the [Included Plugins](#included-plugins) 
 section.  
-
 
 ## Plugins
 
-### Defining and Installing a new Plugin
+### Defining and Installing a New Plugin
 
 ```javascript
 openmct.install(function install(openmctAPI) {
@@ -85,9 +86,9 @@ openmct.install(function install(openmctAPI) {
 ```
 
 A plugin is simply a function that when installed is invoked with one parameter - 
-the openmct API. A common approach that we use is to define a plugin as a function 
-that returns an installation function, this allows configuration to be specified 
-when the plugin is included.
+the openmct API. A common approach used in the Open MCT codebase is to define a 
+plugin as a function that returns an installation function. This allows 
+configuration to be specified when the plugin is included.
 
 eg.
 ```javascript
@@ -125,18 +126,21 @@ looks like this:
 
 The main attributes to note are the `identifier`, and `type` attributes.
 * `identifier`: A composite key that provides a universally unique identifier for 
-this object. The `namespace` and `key` are used to identify the object, and the key 
+this object. The `namespace` and `key` are used to identify the object. The `key` 
 must be unique within the namespace. 
 * `type`: All objects in Open MCT have a type. Types allow you to form an 
 ontology of knowledge and provide an abstraction for grouping, visualizing, and 
 interpreting data. Details on how to define a new object type are provided below. 
+
 Open MCT uses a number of builtin types. Typically you are going to want to 
 define your own if extending Open MCT.
 
 ### Domain Object Types
 
-Custom types may be registered via the addType function on the Type registry.
+Custom types may be registered via the `addType` function on the opencmt Type 
+registry.
 
+eg.
 ```javascript
 openmct.types.addType('my-type', {
     label: "My Type",
@@ -146,7 +150,7 @@ openmct.types.addType('my-type', {
 ```
 
 The `addType` function accepts two arguments:
-* A `string` identifying the type. This string key is used when specifying a type 
+* A `string` key identifying the type. This key is used when specifying a type 
 for an object.
 * An object type specification. An object type definition supports the following 
 attributes      
@@ -162,19 +166,19 @@ attributes
     of this object. This is used for specifying an icon to appear next to each 
     object of this type.
 
-The [Open MCT Tutorials]() provide a step-by-step example of defining a new object
-type.
+The [Open MCT Tutorials](https://github.com/larkin/openmct-tutorial) provide a 
+step-by-step example of defining a new object type.
 
 ## Root Objects
 
-In many cases, you'd like a certain object (or a certain hierarchy of
-objects) to be accessible from the top level of the application (the
-tree on the left-hand side of Open MCT.) It is typical to expose a telemetry
-dictionary as a hierarchy of telemetry-providing domain objects in this
-fashion.
+In many cases, you'd like a certain object (or a certain hierarchy of objects) 
+to be accessible from the top level of the application (the tree on the left-hand 
+side of Open MCT.) It is typical to expose a telemetry dictionary as a hierarchy 
+of telemetry-providing domain objects in this fashion.
 
-To do so, use the `addRoot` method of the object API:
+To do so, use the `addRoot` method of the object API.
 
+eg.
 ```javascript
 openmct.objects.addRoot({
         key: "my-key", 
@@ -189,12 +193,13 @@ Root objects are loaded just like any other objects, i.e. via an object
 provider.
 
 ## Object Providers
+
 An Object Provider is used to build Domain Objects, typically retrieved from 
-some source such as a persistence store or telemetry dictionary. For example, in 
-order to integrate telemetry from a new source an object provider will need to 
-be created that can build objects representing telemetry points exposed by the 
-telemetry source. The API call to define a new object provider is fairly 
-straightforward. Here's a very simple example:
+some source such as a persistence store or telemetry dictionary. In order to 
+integrate telemetry from a new source an object provider will need to be created 
+that can build objects representing telemetry points exposed by the telemetry 
+source. The API call to define a new object provider is fairly straightforward. 
+Here's a very simple example:
 
 ```javascript
 openmct.objects.addProvider('example.namespace', {
@@ -211,7 +216,7 @@ The `addProvider` function takes two arguments:
 
 * `namespace`: A `string` representing the namespace that this object provider 
 will provide objects for.
-* `provider`: An object with a single function, `get`. This function accepts an 
+* `provider`: An `object` with a single function, `get`. This function accepts an 
 [Identifier](#domain-objects-and-identifiers) for the object to be provided. 
 It is expected that the `get` function will return a 
 [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) 
@@ -219,8 +224,8 @@ that resolves with the object being requested.
 
 ## Composition Providers
 
-The "composition" of a domain object is the list of objects it contains,
-as shown (for example) in the tree for browsing. Open MCT provides a
+The "composition" of a domain object is the list of objects it contains, as shown 
+(for example) in the tree for browsing. Open MCT provides a
 [default solution](#default-composition-provider) for composition, but there
 may be cases where you want to provide the composition of a certain object
 (or type of object) dynamically.
@@ -243,18 +248,17 @@ openmct.composition.addProvider({
 ```
 The `addProvider` function accepts a Composition Provider object as its sole 
 argument. A Composition Provider is a javascript object exposing two functions:
-* `appliesTo`: A `function` that accepts a `domainObject` as an argument, and 
-returns a `boolean` value indicating whether this composition provider applies 
-to the given object.
+* `appliesTo`: A `function` that accepts a `domainObject` argument, and returns 
+a `boolean` value indicating whether this composition provider applies to the 
+given object.
 * `load`: A `function` that accepts a `domainObject` as an argument, and returns
 a `Promise` that resolves with an array of [Identifier](#domain-objects-and-identifiers).
 These identifiers will be used to fetch Domain Objects from an [Object Provider](#object-provider)
 
 ### Default Composition Provider
 
-The default composition provider applies to any domain object with
-a `composition` property. The value of `composition` should be an
-array of identifiers, e.g.:
+The default composition provider applies to any domain object with a `composition` 
+property. The value of `composition` should be an array of identifiers, e.g.:
 
 ```javascript
 var domainObject = {
@@ -327,7 +331,7 @@ it is assumed that `myAdapter` contains the implementation details
 source.
 
 For a step-by-step guide to building a telemetry adapter, please see the 
-[Open MCT Tutorials]().
+[Open MCT Tutorials](https://github.com/larkin/openmct-tutorial).
 
 ### Telemetry Requests
 Telemetry requests support time bounded queries. A call to a Telemetry Provider's 
@@ -343,11 +347,11 @@ request object with a start and end time is included below:
 
 ### Telemetry Data
 
-Telemetry data is provided to Open MCT by [Telemetry Providers] in the form of 
-javascript objects. A single telemetry value will be represented by a single 
-javascript object. A collection of telemetry values (for example, retrieved in 
-response to a `request`) is represented by an `Array` of javascript objects. 
-These telemetry javascript objects are simply key value pairs. For example:
+Telemetry data is provided to Open MCT by [Telemetry Providers](#telemetry-providers)
+in the form of javascript objects. A single telemetry value will be represented 
+by a single javascript object. A collection of telemetry values (for example, 
+retrieved in response to a `request`) is represented by an `Array` of javascript 
+objects. These telemetry javascript objects are simply key value pairs. For example:
 
 Typically a telemetry datum will have some timestamp associated with it. This 
 time stamp should have a key that corresponds to some time system supported by 
@@ -362,7 +366,7 @@ openmct.telemetry.addProvider({
         return true
     },
     request: function (domainObject, options) {    
-        return [
+        return Promise.resolve([
             {
                 'utc': Date.now() - 2000,
                 'value': 1,
@@ -375,7 +379,7 @@ openmct.telemetry.addProvider({
                 'utc': Date.now(),
                 'value': 3,
             }
-        ]
+        ]);
     }
 })
 ```
@@ -407,7 +411,7 @@ Open MCT is packaged along with a few general-purpose plugins:
 
 Generally, you will want to either install these plugins, or install
 different plugins that provide persistence and an initial folder
-hierarchy. Installation is [as described previously](#installing-plugins):
+hierarchy.
 
 eg.
 ```javascript
