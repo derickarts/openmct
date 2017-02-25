@@ -4,8 +4,8 @@
 
 This document is intended to serve as reference material for a developer who 
 wishes to develop an application based on Open MCT. It will provide details of 
-the public facing API necessary to extend the Open MCT platform meet common use 
-cases such as integrating with a telemetry source. 
+the API necessary to extend the Open MCT platform meet common use cases such as 
+integrating with a telemetry source. 
 
 The best place to start is with the Open MCT tutorials. These will walk you through the 
 process of getting up and running with Open MCT, as well as addressing some common 
@@ -40,7 +40,7 @@ variable named `openmct`. This `openmct` object is used to make API calls.
 Open MCT is packaged as a UMD (Universal Module Definition) module, so common 
 script loaders are supported.
 
-```
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,8 +58,8 @@ script loaders are supported.
     </script>
 </body>
 </html>
-
 ```
+
 Open MCT requires certain assets to be available to it, such as html templates, 
 images, and css. To tell Open MCT where these are located, simply call the 
 `setAssetPath` function. Typically this will be the same location as the `openmct.js` 
@@ -69,13 +69,15 @@ Open MCT does not require any plugins to be installed, but there are some plugin
 bundled with the application that provide UI, persistence, and other default 
 configuration which are necessary to be able to do anything with the application 
 initially. Any of these plugins could be replaced with a custom plugin however. 
-The included plugins are documented in the [Included Plugins](#included-plugins) section.  
+The included plugins are documented in the [Included Plugins](#included-plugins) 
+section.  
 
 
 ## Plugins
 
 ### Defining and Installing a new Plugin
-```
+
+```javascript
 openmct.install(function install(openmctAPI) {
     // Do things here
     // ...
@@ -88,7 +90,7 @@ that returns an installation function, this allows configuration to be specified
 when the plugin is included.
 
 eg.
-```
+```javascript
 openmct.install(openmct.plugins.Elasticsearch("http://localhost:8002/openmct"));
 ```
 This approach can be seen in all of the [plugins provided with Open MCT](https://github.com/nasa/openmct/blob/master/src/plugins/plugins.js).
@@ -106,7 +108,7 @@ An example of a _Domain Object_ is the My Items object which is a folder in
 which a user can persist any objects that they create. The My Items object 
 looks like this: 
 
-``` javascript
+```javascript
 {
     identifier: {
         namespace: ""
@@ -135,7 +137,7 @@ define your own if extending Open MCT.
 
 Custom types may be registered via the addType function on the Type registry.
 
-```
+```javascript
 openmct.types.addType('my-type', {
     label: "My Type",
     description: "This is a type that I added!",
@@ -143,7 +145,24 @@ openmct.types.addType('my-type', {
 });
 ```
 
-The Open MCT tutorials provide a step-by-step example of defining a new object
+The `addType` function accepts two arguments:
+* A `string` identifying the type. This string key is used when specifying a type 
+for an object.
+* An object type specification. An object type definition supports the following 
+attributes      
+    * `label`: a `string` naming this object type
+    * `description`: a `string` specifying a longer-form description of this type
+    * `initialize`: a `function` which initializes the model for new domain objects 
+    of this type. This can be used for setting default values on an object when 
+    it is instantiated.
+    * `creatable`: A `boolean` indicating whether users should be allowed to create 
+    this type (default: `false`). This will determine whether the type appears 
+    in the `Create` menu.
+    * `cssClass`: A `string` specifying a CSS class to apply to each representation 
+    of this object. This is used for specifying an icon to appear next to each 
+    object of this type.
+
+The [Open MCT Tutorials]() provide a step-by-step example of defining a new object
 type.
 
 ## Root Objects
@@ -162,6 +181,9 @@ openmct.objects.addRoot({
         namespace: "my-namespace" 
     });
 ```
+
+The `addRoot` function takes a single object [identifier](#domain-objects-and-identifiers) 
+as an argument. 
 
 Root objects are loaded just like any other objects, i.e. via an object
 provider.
@@ -209,7 +231,7 @@ You may want to populate a hierarchy under a custom root-level object based on
 the contents of a telemetry dictionary. To do this, you can add a new 
 Composition Provider:
 
-```
+```javascript
 openmct.composition.addProvider({
     appliesTo: function (domainObject) {
         return domainObject.type === 'my-type';
@@ -219,6 +241,14 @@ openmct.composition.addProvider({
     }
 });
 ```
+The `addProvider` function accepts a Composition Provider object as its sole 
+argument. A Composition Provider is a javascript object exposing two functions:
+* `appliesTo`: A `function` that accepts a `domainObject` as an argument, and 
+returns a `boolean` value indicating whether this composition provider applies 
+to the given object.
+* `load`: A `function` that accepts a `domainObject` as an argument, and returns
+a `Promise` that resolves with an array of [Identifier](#domain-objects-and-identifiers).
+These identifiers will be used to fetch Domain Objects from an [Object Provider](#object-provider)
 
 ### Default Composition Provider
 
@@ -226,7 +256,7 @@ The default composition provider applies to any domain object with
 a `composition` property. The value of `composition` should be an
 array of identifiers, e.g.:
 
-```js
+```javascript
 var domainObject = {
     name: "My Object",
     type: 'folder',
@@ -252,7 +282,7 @@ provider typically can support a one off _request_ for a batch of telemetry data
 or it can provide the ability to _subscribe_ to receive new telemetry data when 
 it becomes available, or both.
 
-```
+```javascript
 openmct.telemetry.addProvider({
     supportsRequest: function (domainObject) {
         ...
@@ -326,7 +356,7 @@ then the key `utc` can be used.
    
 An example of a telemetry provider request function that returns a collection of
 mock telemtry data is below:
-```
+```javascript
 openmct.telemetry.addProvider({
     supportsRequest: function (domainObject) {
         return true
@@ -380,7 +410,7 @@ different plugins that provide persistence and an initial folder
 hierarchy. Installation is [as described previously](#installing-plugins):
 
 eg.
-```
+```javascript
 openmct.install(openmct.plugins.LocalStorage());
 openmct.install(openmct.plugins.MyItems());
 ```
