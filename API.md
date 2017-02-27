@@ -12,25 +12,25 @@ some common developer use cases.
 
 ## Building From Source 
 
-The latest version of Open MCT is available from [our GitHub repository](https://github.com/). 
-If you have [node.js](https://nodejs.org/en/) installed, an easy way to get and build 
-Open MCT is as an npm dependency 
-
+The latest version of Open MCT is available from [our GitHub repository](https://github.com/nasa/openmct). 
+If you have `git`, and `node` installed, you can build Open MCT with the commands 
 ```
-npm install nasa/openmct
+git clone https://github.com/nasa/openmct.git
+cd openmct
+npm install
 ```
 
-This will fetch the Open MCT source from our GitHub repository, and build 
+These commands will fetch the Open MCT source from our GitHub repository, and build 
 a minified version that can be included in your application. The output of the 
-build process is placed in a `dist` folder, which can be copied out to another 
-location as needed. The content of this folder will include a minified javascript 
-file named `openmct.js` as well as assets such as html, css, and images necessary 
-for the UI. 
+build process is placed in a `dist` folder under the openmct source directory, 
+which can be copied out to another location as needed. The contents of this 
+folder will include a minified javascript file named `openmct.js` as well as 
+assets such as html, css, and images necessary for the UI. 
 
 ## Starting an Open MCT application
 
 To start a minimally functional Open MCT application, it is necessary to include 
-the Open MCT source, enable some basic plugins, and bootstrap the application. 
+the Open MCT distributable, enable some basic plugins, and bootstrap the application. 
 The tutorials walk through the process of getting Open MCT up and running from scratch,
 but provided below is a minimal HTML template that includes Open MCT, installs 
 some basic plugins, and bootstraps the application. It assumes that Open MCT is 
@@ -48,15 +48,15 @@ script loaders are also supported.
 <html>
 <head>
     <title>Open MCT</title>
-    <script src="node_modules/openmct/dist/openmct.js"></script>
+    <script src="openmct.js"></script>
 </head>
 <body>
     <script>
         openmct.setAssetPath('node_modules/openmct/dist');
-        openmct.install(openmct.plugins.localStorage);
-        openmct.install(openmct.plugins.myItems);
+        openmct.install(openmct.plugins.LocalStorage());
+        openmct.install(openmct.plugins.MyItems());
         openmct.install(openmct.plugins.UTCTimeSystem());
-        openmct.install(openmct.plugins.espresso);
+        openmct.install(openmct.plugins.Espresso());
         openmct.start();
     </script>
 </body>
